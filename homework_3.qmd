@@ -1,0 +1,97 @@
+---
+title: "homework_3"
+format: html
+editor: visual
+---
+
+## Part 1: Build the Dataset
+
+Create a data frame with 365 rows representing daily air quality readings at a monitoring station. Your data frame must include the following columns:
+
+1.  `day` — a sequence of integers from 1 to 365
+
+2.  `pm25` — daily PM2.5 concentration (µg/m³), sampled from a distribution of your choice using one of the data generation functions covered in class (`runif`, `rnorm`, `rpois`). Choose parameters that produce realistic values — look up typical urban PM2.5 ranges to guide your choices.
+
+3.  `season` — a factor column with levels `"winter"`, `"spring"`, `"summer"`, `"fall"`, assigned based on day number (days 1–90, 91–180, 181–270, 271–365)
+
+4.  `risk` — an empty column initialized to `NA` — you will fill this in Part 2
+
+```{r}
+
+library(dplyr)
+library(tidyverse)
+#creating data 
+day = 1:365
+day
+pm25 = runif(min=0, max=50, n=365)
+pm25
+
+risk = NA
+
+
+seasons <- case_when(
+  day %in% 1:90 ~ "winter",
+  day %in% 91:180 ~"spring",
+  day %in% 181:270 ~ "summer",
+  day %in% 271:365 ~ "fall")
+seasons
+
+seasons <- as.factor(seasons)
+
+data <- data.frame(seasons = seasons,
+           pm25 = pm25,
+           day = day, 
+           risk = risk)
+data
+```
+
+## **Part 2 – Classify Risk with a For Loop**
+
+Using a `for` loop, fill in the `risk` column for each day based on the following PM2.5 thresholds (adapted from EPA AQI guidelines):
+
+-   `"good"` — PM2.5 below 12 µg/m³
+
+-   `"moderate"` — PM2.5 between 12 and 35.4 µg/m³
+
+-   `"unhealthy"` — PM2.5 above 35.4 µg/m³
+
+*Important* while there are many ways to do this - you must use a *for* loop
+
+Within the same loop, also track the longest consecutive streak of `"unhealthy"` days. This will require checking the previous row’s risk classification at each step. Store the final streak length in a variable called `max_unhealthy_strea`
+
+```{r}
+
+min(pm25)
+max(pm25)
+
+# setting a named variable for the threshold makes the code easier to read
+unhealthy = 35.4
+moderate = 12
+good = 0
+current_streak <- 0
+max_unhealthy_streak <- 0
+
+for (i in 1:length(data$pm25)) {
+  data$risk[i] <- 
+    ifelse(data$pm25[i] > unhealthy, "unhealthy", 
+           ifelse(data$pm25[i] >= moderate, "moderate", "good"))
+  if (data$risk[i] == "unhealthy") {
+    if (i == 1 || data$risk[i - 1] == "unhealthy") {
+      current_streak <- current_streak + 1
+    } else {
+      current_streak <- 1 
+      }
+  } else {
+    current_streak <- 0 
+  }
+  if (current_streak > max_unhealthy_streak) 
+        max_unhealthy_streak <- current_streak 
+  }
+
+max_unhealthy_streak
+
+data
+
+
+
+```
