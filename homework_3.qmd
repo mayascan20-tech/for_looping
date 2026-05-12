@@ -95,3 +95,34 @@ data
 
 
 ```
+
+## **Part 3 – Seasonal Summary with a For Loop**
+
+Write a `for` loop that computes number of days in each season that fall into unhealthy risk category
+
+```{r}
+# setting a named variable for the threshold makes the code easier to read
+day_unhealthy <- c(winter = 0, spring = 0, summer = 0, fall = 0)
+
+
+for (i in 1:length(data$day)) {
+  if(data$risk[i] == "unhealthy") {
+    seasons[i] <- data$seasons[i] 
+    day_unhealthy[season_i] <- day_unhealthy[season_i] + 1
+  }
+}
+
+m <- day_unhealthy 
+m
+
+table(data$seasons[data$risk == "unhealthy"])
+data
+day_unhealthy
+day_unhealthy
+
+
+max_unhealthy_streak
+
+data
+
+```
