@@ -68,8 +68,6 @@ max(pm25)
 unhealthy = 35.4
 moderate = 12
 good = 0
-current_streak <- 0
-max_unhealthy_streak <- 0
 
 for (i in 1:length(data$pm25)) {
   data$risk[i] <- 
@@ -107,22 +105,46 @@ day_unhealthy <- c(winter = 0, spring = 0, summer = 0, fall = 0)
 
 for (i in 1:length(data$day)) {
   if(data$risk[i] == "unhealthy") {
-    seasons[i] <- data$seasons[i] 
-    day_unhealthy[season_i] <- day_unhealthy[season_i] + 1
+    seasons_i <- data$seasons[i] 
+    day_unhealthy[seasons_i] <- day_unhealthy[seasons_i] + 1
   }
 }
 
-m <- day_unhealthy 
-m
-
-table(data$seasons[data$risk == "unhealthy"])
-data
-day_unhealthy
-day_unhealthy
-
-
-max_unhealthy_streak
-
-data
+day_unhealthy 
 
 ```
+
+## **Part 4 – Visualize and Report**
+
+Produce at least two plots:
+
+1.  A time series or histogram showing PM2.5 concentration across the year, colored or faceted by season
+
+2.  A bar chart showing the count of days in each risk category,
+
+Each plot must have a title generated using `sprintf` that includes the the max_unhealthy_streak value you calculated in Part 2.
+
+```{r}
+library(ggplot2)
+
+plot_title_A <- "Seasons"
+
+
+pm25_annual_season <- ggplot(data, aes(x=day, y=pm25, color=seasons)) + 
+  geom_line() + 
+  labs(colour = "Seasons", 
+       title = sprintf("Sampled PM 2.5 Concentrations: %d Day Unhealthy Air Quality Index Streak", max_unhealthy_streak), 
+       x = "Days", 
+       y = "PM 2.5 (µg/m³)") +
+  scale_color_discrete(labels = c("Fall", "Spring", "Summer", "Winter")) +
+  theme_minimal()
+
+pm25_annual_season
+
+```
+
+Even though this is artifical data - imagine this was actual results. Write a 1 paragraph summary for managers interpreting the patterns you see in the data and plots - and note any implications for public health or policy. You can make it up - as long as it is consistent with the data you generated.
+
+Put your quarto and a rendered version (pdf or html) in your GitHub repository for this assignment. You can use the same repository you created for HW2, but make you name the files clearly (or put in a new directory) so that I can find them. For example, you could put the quarto file in a new directory called “HW3” and name it something like “HW3_air_quality.qmd”.
+
+Turn in your *GitHub* repo link on Canvas
