@@ -120,8 +120,6 @@ Produce at least two plots:
 
 1.  A time series or histogram showing PM2.5 concentration across the year, colored or faceted by season
 
-2.  A bar chart showing the count of days in each risk category,
-
 Each plot must have a title generated using `sprintf` that includes the the max_unhealthy_streak value you calculated in Part 2.
 
 ```{r}
@@ -141,6 +139,23 @@ pm25_annual_season <- ggplot(data, aes(x=day, y=pm25, color=seasons)) +
 
 pm25_annual_season
 
+```
+
+1.  A bar chart showing the count of days in each risk category,
+
+Each plot must have a title generated using `sprintf` that includes the the max_unhealthy_streak value you calculated in Part 2.
+
+```{r}
+risk_counts <- data %>%
+  group_by(risk) %>%
+  summarise(n_days = n())
+risk_counts
+
+
+risk_cat_plot <- ggplot(risk_counts, aes(x=risk, y=n_days)) + 
+  geom_col() +
+  theme_bw()
+risk_cat_plot
 ```
 
 Even though this is artifical data - imagine this was actual results. Write a 1 paragraph summary for managers interpreting the patterns you see in the data and plots - and note any implications for public health or policy. You can make it up - as long as it is consistent with the data you generated.
