@@ -6,17 +6,8 @@ editor: visual
 
 ## Part 1: Build the Dataset
 
-Create a data frame with 365 rows representing daily air quality readings at a monitoring station. Your data frame must include the following columns:
-
-1.  `day` — a sequence of integers from 1 to 365
-
-2.  `pm25` — daily PM2.5 concentration (µg/m³), sampled from a distribution of your choice using one of the data generation functions covered in class (`runif`, `rnorm`, `rpois`). Choose parameters that produce realistic values — look up typical urban PM2.5 ranges to guide your choices.
-
-3.  `season` — a factor column with levels `"winter"`, `"spring"`, `"summer"`, `"fall"`, assigned based on day number (days 1–90, 91–180, 181–270, 271–365)
-
-4.  `risk` — an empty column initialized to `NA` — you will fill this in Part 2
-
 ```{r}
+#| output: false
 
 library(dplyr)
 library(tidyverse)
@@ -47,27 +38,14 @@ data
 
 ## **Part 2 – Classify Risk with a For Loop**
 
-Using a `for` loop, fill in the `risk` column for each day based on the following PM2.5 thresholds (adapted from EPA AQI guidelines):
-
--   `"good"` — PM2.5 below 12 µg/m³
-
--   `"moderate"` — PM2.5 between 12 and 35.4 µg/m³
-
--   `"unhealthy"` — PM2.5 above 35.4 µg/m³
-
-*Important* while there are many ways to do this - you must use a *for* loop
-
-Within the same loop, also track the longest consecutive streak of `"unhealthy"` days. This will require checking the previous row’s risk classification at each step. Store the final streak length in a variable called `max_unhealthy_streak`
-
 ```{r}
-
-min(pm25)
-max(pm25)
 
 # setting a named variable for the threshold makes the code easier to read
 unhealthy = 35.4
 moderate = 12
 good = 0
+max_unhealthy_streak = 0
+current_streak = 0
 
 for (i in 1:length(data$pm25)) {
   data$risk[i] <- 
@@ -88,15 +66,13 @@ for (i in 1:length(data$pm25)) {
 
 max_unhealthy_streak
 
-data
+
 
 
 
 ```
 
 ## **Part 3 – Seasonal Summary with a For Loop**
-
-Write a `for` loop that computes number of days in each season that fall into unhealthy risk category
 
 ```{r}
 # setting a named variable for the threshold makes the code easier to read
@@ -121,35 +97,23 @@ seasonal_uh
 
 ## **Part 4 – Visualize and Report**
 
-Produce at least two plots:
-
-1.  A time series or histogram showing PM2.5 concentration across the year, colored or faceted by season
-
-Each plot must have a title generated using `sprintf` that includes the the max_unhealthy_streak value you calculated in Part 2.
-
 ```{r}
 library(ggplot2)
-
-plot_title_A <- "Seasons"
-
 
 pm25_annual_season <- ggplot(data, aes(x=day, y=pm25, color=seasons)) + 
   geom_line() + 
   labs(colour = "Seasons", 
-       title = sprintf("Sampled PM 2.5 Concentrations: Longest Unhealthy Air Quality Index Streak was %d Days", max_unhealthy_streak), 
+       title = sprintf("Sampled PM 2.5: Longest Unhealthy Air Quality Index Streak was %d Days", max_unhealthy_streak), 
        subtitle = "Figure 1: Time Series of the PM 2.5 Concentrations Across the Year", 
        x = "Days", 
        y = "PM 2.5 (µg/m³)") +
   scale_color_discrete(labels = c("Fall", "Spring", "Summer", "Winter")) +
+  scale_y_continuous(breaks = seq(0, 50, by = 5)) + 
   theme_minimal()
 
 pm25_annual_season
 
 ```
-
-1.  A bar chart showing the count of days in each risk category,
-
-Each plot must have a title generated using `sprintf` that includes the the max_unhealthy_streak value you calculated in Part 2.
 
 ```{r}
 risk_counts <- data %>%
@@ -157,7 +121,9 @@ risk_counts <- data %>%
   summarise(n_days = n())
 risk_counts
 
+```
 
+```{r}
 risk_cat_plot <- ggplot(risk_counts, aes(x=risk, y=n_days, fill = risk)) + 
   geom_col(fill = c("darkgreen", "steelblue", "darkred")) +
   labs(title = sprintf("Annual Air Quality Risk Categorization: Streak of %d Unhealthy Days", max_unhealthy_streak),
@@ -167,15 +133,12 @@ risk_cat_plot <- ggplot(risk_counts, aes(x=risk, y=n_days, fill = risk)) +
  guides(fill="none") +
   theme_minimal()
 risk_cat_plot
-
 ```
 
-Even though this is artifical data - imagine this was actual results. Write a 1 paragraph summary for managers interpreting the patterns you see in the data and plots - and note any implications for public health or policy. You can make it up - as long as it is consistent with the data you generated.
+### Results: 
 
-The seasonal 'for loop' analysis ('seasonal_uh dataframe) revealed that spring had the highest number of unhealthy air quality index (AQI) days based on their PM 2.5 concentrations (\> 35.4 µg/m³). This pattern is evident in the annual PM 2.5 concentration time series (Fig. 1), as the PM 2.5 fluctuations in spring are relatively higher than the other months. Summer and winter have equal number of unhealthy AQI days (seasonal_uh dataframe), which corresponds to each season's PM 2.5 fluctuations illustrated in Figure 1. Throughout the year, the number of days categorized as moderate was higher than the number of unhealthy and good days combined (Fig. 2). Unhealthy days nearly exceeded the number of good
+The seasonal 'for loop' analysis (`seasonal_uh`) revealed that spring had the highest number of unhealthy air quality index (AQI) days based on PM 2.5 concentrations (\>35.4 µg/m³). This pattern is also evident in the annual PM 2.5 time series (Fig. 1), where spring concentrations fluctuate more dramatically than in other seasons, though the seasonal differences are difficult to distinguish visually from the time series alone. Winter had the second highest number of days (`seasonal_uh`). This seasonal pattern suggests that pollution sources are tied to late-winter transitioning into spring conditions. Potential sources include agricultural burning, wind-driven dust, or temperature-inversion events, while winter contributors likely include residential heating and stagnant air masses. From a management standpoint, these findings demonstrate the need for season-specific interventions rather than uniform year-round measures. Intervention strategies could involve enhanced public advisories and sensitive-group protections during spring and winter, stricter enforcement of emissions controls during high-risk months, and investment in real-time AQI alert systems for schools, elder-care facilities, and outdoor workers. Across the year, the number of moderate AQI days exceeded both the number of unhealthy and good days, accounting for nearly 50% of days, while unhealthy days accounted for approximately 30% (Fig. 2). The relatively small share of "good" days (\<20%, Fig. 2) also indicates that this community is operating with little air-quality buffer, meaning that even modest increases in emissions or adverse weather could push a substantial number of days into unhealthy territory.
 
-g
+*Put your quarto and a rendered version (pdf or html) in your GitHub repository for this assignment. You can use the same repository you created for HW2, but make you name the files clearly (or put in a new directory) so that I can find them. For example, you could put the quarto file in a new directory called “HW3” and name it something like “HW3_air_quality.qmd”.*
 
-Put your quarto and a rendered version (pdf or html) in your GitHub repository for this assignment. You can use the same repository you created for HW2, but make you name the files clearly (or put in a new directory) so that I can find them. For example, you could put the quarto file in a new directory called “HW3” and name it something like “HW3_air_quality.qmd”.
-
-Turn in your *GitHub* repo link on Canvas
+*Turn in your GitHub repo link on Canvas*
