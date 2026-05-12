@@ -57,7 +57,7 @@ Using a `for` loop, fill in the `risk` column for each day based on the followin
 
 *Important* while there are many ways to do this - you must use a *for* loop
 
-Within the same loop, also track the longest consecutive streak of `"unhealthy"` days. This will require checking the previous row’s risk classification at each step. Store the final streak length in a variable called `max_unhealthy_strea`
+Within the same loop, also track the longest consecutive streak of `"unhealthy"` days. This will require checking the previous row’s risk classification at each step. Store the final streak length in a variable called `max_unhealthy_streak`
 
 ```{r}
 
@@ -111,6 +111,11 @@ for (i in 1:length(data$day)) {
 }
 
 day_unhealthy 
+library(data.table)
+
+seasonal_uh <- data.table(season = names(day_unhealthy), 
+                 unhealthy_days = as.integer(day_unhealthy))
+seasonal_uh
 
 ```
 
@@ -131,7 +136,8 @@ plot_title_A <- "Seasons"
 pm25_annual_season <- ggplot(data, aes(x=day, y=pm25, color=seasons)) + 
   geom_line() + 
   labs(colour = "Seasons", 
-       title = sprintf("Sampled PM 2.5 Concentrations: %d Day Unhealthy Air Quality Index Streak", max_unhealthy_streak), 
+       title = sprintf("Sampled PM 2.5 Concentrations: Longest Unhealthy Air Quality Index Streak was %d Days", max_unhealthy_streak), 
+       subtitle = "Figure 1: Time Series of the PM 2.5 Concentrations Across the Year", 
        x = "Days", 
        y = "PM 2.5 (µg/m³)") +
   scale_color_discrete(labels = c("Fall", "Spring", "Summer", "Winter")) +
@@ -152,13 +158,23 @@ risk_counts <- data %>%
 risk_counts
 
 
-risk_cat_plot <- ggplot(risk_counts, aes(x=risk, y=n_days)) + 
-  geom_col() +
-  theme_bw()
+risk_cat_plot <- ggplot(risk_counts, aes(x=risk, y=n_days, fill = risk)) + 
+  geom_col(fill = c("darkgreen", "steelblue", "darkred")) +
+  labs(title = sprintf("Annual Air Quality Risk Categorization: Streak of %d Unhealthy Days", max_unhealthy_streak),
+       subtitle = "Figure 2: Number of Days by Air Quality Risk Types Across the Year", 
+       x = "Risk Categories", 
+       y = "Number of Days") + 
+ guides(fill="none") +
+  theme_minimal()
 risk_cat_plot
+
 ```
 
 Even though this is artifical data - imagine this was actual results. Write a 1 paragraph summary for managers interpreting the patterns you see in the data and plots - and note any implications for public health or policy. You can make it up - as long as it is consistent with the data you generated.
+
+The seasonal 'for loop' analysis ('seasonal_uh dataframe) revealed that spring had the highest number of unhealthy air quality index (AQI) days based on their PM 2.5 concentrations (\> 35.4 µg/m³). This pattern is evident in the annual PM 2.5 concentration time series (Fig. 1), as the PM 2.5 fluctuations in spring are relatively higher than the other months. Summer and winter have equal number of unhealthy AQI days (seasonal_uh dataframe), which corresponds to each season's PM 2.5 fluctuations illustrated in Figure 1. Throughout the year, the number of days categorized as moderate was higher than the number of unhealthy and good days combined (Fig. 2). Unhealthy days nearly exceeded the number of good
+
+g
 
 Put your quarto and a rendered version (pdf or html) in your GitHub repository for this assignment. You can use the same repository you created for HW2, but make you name the files clearly (or put in a new directory) so that I can find them. For example, you could put the quarto file in a new directory called “HW3” and name it something like “HW3_air_quality.qmd”.
 
